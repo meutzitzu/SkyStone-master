@@ -63,23 +63,45 @@ public class drivetrain extends LinearOpMode {
         waitForStart();
         runtime.reset();
 
+        //INPUT
+        double vX, vY, vR;     //robot speed as commanded by driver (can be in either LOCAL or GLOBAL coordinates, depending on the MODE)
+
+        //CTRL
+        int MODE=0;
+                            /* MODE 0 means simple "first person" controls, no trig tricks needed,
+
+                             MODE 1 means controlling the robot in GLOBAL coordinates
+                             (left's always left, right's always right, regardless of robot orientation)(some trig required)
+                             see MODE STATE MACHINE */
+
+        double LocalX, LocalY; //robot speed in local coordinates
+        double X, Y, A;
         //OUTPUT
         double  power_FL,   power_FR,
 
                 power_RL,   power_RR;
-        //CTRL
-        double vX, vY, vR;
 
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
-
+            //READ INPUTS
             vY = -gamepad1.left_stick_y;
             vX =  gamepad1.left_stick_x;
-            vR =  gamepad1.right_stick_x;
-            power_FL    = Range.clip(+vX + vY + vR, -1.0, 1.0) ;
-            power_FR    = Range.clip(-vX + vY - vR, -1.0, 1.0) ;
-            power_RL    = Range.clip(-vX + vY + vR, -1.0, 1.0) ;
-            power_RR    = Range.clip(+vX + vY - vR, -1.0, 1.0) ;
+            vR =  gamepad1.left_trigger - gamepad1.right_trigger;
+
+            /*
+                UPDATE X,Y,A from sensors
+             */
+            A=0;
+            LocalY=vX*Math.sin(A)+vY*Math.cos(A);
+            LocalY=vX*Math.cos(A)-vY*Math.sin(A);
+
+                    // O D O M E T R Y goes HERE !!
+
+            power_FL    = Range.clip(+LocalX + LocalY + vR, -1.0, 1.0) ;
+            power_FR    = Range.clip(-LocalX + LocalY - vR, -1.0, 1.0) ;
+            power_RL    = Range.clip(-LocalX + LocalY + vR, -1.0, 1.0) ;
+            power_RR    = Range.clip(+LocalX + LocalY - vR, -1.0, 1.0) ;
+
 
             // Send calculated power to wheels
             driveFL.setPower(power_FL);
