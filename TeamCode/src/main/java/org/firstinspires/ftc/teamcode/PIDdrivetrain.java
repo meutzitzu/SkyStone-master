@@ -1,26 +1,19 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.hardware.modernrobotics.ModernRoboticsI2cCompassSensor;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-
-import java.util.Locale;
-
 
 @TeleOp(name="#T>drivetrain", group="Linear Opmode")
 //@Disabled
-public class drivetrain extends LinearOpMode {
+public class PIDdrivetrain extends LinearOpMode {
 
     // Declare Hardware, timing, etc
     private ElapsedTime runtime = new ElapsedTime();
@@ -63,20 +56,20 @@ public class drivetrain extends LinearOpMode {
         double  cR=0,
                 cG=0,
                 cB=0;
+        double X=0, Y=0, A=0; //robot coordinates (for odometry) {note that we can not use these yet because we have no odometry sensors}
 
         //CTRL
+        double LocalX = 0, LocalY = 0; //robot speed in local coordinates
         double delay = 0 ;          //stiu ca e cancer da atat s-a putut
         int MODE = 0;
-        int GEAR = 1;
-        double Gear_shift = 0;
+        double A0 =0;
                             /* MODE 0 means simple "first person" controls, no trig tricks needed,
                              MODE 1 means controlling the robot in GLOBAL coordinates
                              (left's always left, right's always right, regardless of robot orientation)(some trig required)
                              see MODE STATE MACHINE */
 
-        double LocalX = 0, LocalY = 0; //robot speed in local coordinates
-        double X=0, Y=0, A=0;
-        double A0 =0;
+        int GEAR = 1;
+        double Gear_shift = 0;
         //OUTPUT
         double  power_FL, power_FR,
 
@@ -181,15 +174,14 @@ public class drivetrain extends LinearOpMode {
             driveRR.setPower(power_RR);
             
 
-            // Telemetry feedback
+            // Show the elapsed game time and wheel power.
             telemetry.addData("Status", "Run Time: " + runtime.toString());
             telemetry.addData("MODE", ": (%d)", MODE);
             telemetry.addData("GEAR", ": %.2f", Gear_shift);
-            telemetry.addData("Distance (cm)",
-                    String.format(Locale.US, "%.02f", sDist.getDistance(DistanceUnit.CM)));
-            telemetry.addData("Color", "\nR%.2f\nG%.2f\nB%.2f", cR, cG, cB);
-            telemetry.addData("HDG","%.2f",A);
             telemetry.addData("IN","X%.2f Y%.2f",LocalX,LocalY);
+            telemetry.addData("HDG","%.2f",A);
+            telemetry.addData("Color", "\nR%.2f\nG%.2f\nB%.2f", cR, cG, cB);
+
             telemetry.addData("Motors", "FL (%.2f), FR (%.2f), RL (%.2f), RR (%.2f)", power_FL, power_FR, power_RL, power_RR);
 
             telemetry.update();
