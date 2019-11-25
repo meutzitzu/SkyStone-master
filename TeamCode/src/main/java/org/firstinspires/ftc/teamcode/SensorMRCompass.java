@@ -34,6 +34,7 @@ import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.CompassSensor;
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.Acceleration;
@@ -54,12 +55,21 @@ import org.firstinspires.ftc.robotcore.external.navigation.Acceleration;
 public class SensorMRCompass extends LinearOpMode {
 
     ModernRoboticsI2cCompassSensor compass;
+    private DcMotor driveFL = null;
+    private DcMotor driveFR = null;
+    private DcMotor driveRL = null;
+    private DcMotor driveRR = null;
     ElapsedTime                    timer = new ElapsedTime();
 
     @Override public void runOpMode() {
 
         // get a reference to our compass
         compass = hardwareMap.get(ModernRoboticsI2cCompassSensor.class, "HDG");
+
+        driveFL = hardwareMap.get(DcMotor.class, "FL");
+        driveFR = hardwareMap.get(DcMotor.class, "FR");
+        driveRL = hardwareMap.get(DcMotor.class, "RL");
+        driveRR = hardwareMap.get(DcMotor.class, "RR");
 
         telemetry.log().setCapacity(20);
         telemetry.log().add("The compass sensor operates quite well out-of-the");
@@ -79,7 +89,7 @@ public class SensorMRCompass extends LinearOpMode {
         while (opModeIsActive()) {
 
             // If the A button is pressed, start calibration and wait for the A button to rise
-            if (gamepad1.a && !compass.isCalibrating()) {
+            if ( !compass.isCalibrating()) {
 
                 telemetry.log().clear();
                 telemetry.log().add("Calibration started");
