@@ -10,40 +10,47 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
+import org.firstinspires.ftc.teamcode.HardwareDrivetrain;
+import org.firstinspires.ftc.robotcontroller.external.samples.HardwarePushbot;
 
-@TeleOp(name="#T>drivetrain", group="Linear Opmode")
+
+@TeleOp(name="#T>PIDdrivetrain", group="Linear Opmode")
 //@Disabled
 public class PIDdrivetrain extends LinearOpMode {
 
     // Declare Hardware, timing, etc
+    HardwareDrivetrain drive   = new HardwareDrivetrain();
     private ElapsedTime runtime = new ElapsedTime();
-    private DcMotor driveFL = null;
-    private DcMotor driveFR = null;
-    private DcMotor driveRL = null;
-    private DcMotor driveRR = null;
     private Servo  mechGrab = null;
     private ColorSensor sColor = null;
     private DistanceSensor sDist = null;
     private ModernRoboticsI2cCompassSensor sCompass = null;
 
+    static final double     COUNTS_PER_MOTOR_REV    = 1440 ;
+    static final double     DRIVE_GEAR_REDUCTION    = 2.0 ;
+    static final double     WHEEL_DIAMETER_CM       = 4.0 ;
+    static final double     COUNTS_PER_CM           = (COUNTS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION)/
+                                                        (WHEEL_DIAMETER_CM * Math.PI);
+
     @Override
     public void runOpMode() {
 
         //Setup Hardware
-        driveFL = hardwareMap.get(DcMotor.class, "FL");
-        driveFR = hardwareMap.get(DcMotor.class, "FR");
-        driveRL = hardwareMap.get(DcMotor.class, "RL");
-        driveRR = hardwareMap.get(DcMotor.class, "RR");
+        drive.init(hardwareMap);
+        drive.FL = hardwareMap.get(DcMotor.class, "FL");
+        drive.FR = hardwareMap.get(DcMotor.class, "FR");
+        drive.RL = hardwareMap.get(DcMotor.class, "RL");
+        drive.RR = hardwareMap.get(DcMotor.class, "RR");
         mechGrab = hardwareMap.get(Servo.class, "GR");
         sColor = hardwareMap.get(ColorSensor.class, "CLR");
         sDist = hardwareMap.get(DistanceSensor.class, "CLR");
         sCompass = hardwareMap.get(ModernRoboticsI2cCompassSensor.class, "HDG");
 
 
-        driveFL.setDirection(DcMotor.Direction.FORWARD);
-        driveFR.setDirection(DcMotor.Direction.REVERSE);
-        driveRL.setDirection(DcMotor.Direction.FORWARD);
-        driveRR.setDirection(DcMotor.Direction.REVERSE);
+        drive.FL.setDirection(DcMotor.Direction.FORWARD);
+        drive.FR.setDirection(DcMotor.Direction.REVERSE);
+        drive.RL.setDirection(DcMotor.Direction.FORWARD);
+        drive.RR.setDirection(DcMotor.Direction.REVERSE);
 
         // Wait for the game to start (driver presses PLAY)
         waitForStart();
@@ -168,10 +175,10 @@ public class PIDdrivetrain extends LinearOpMode {
 
 
             // Send calculated power to wheels
-            driveFL.setPower(power_FL);
-            driveFR.setPower(power_FR);
-            driveRL.setPower(power_RL);
-            driveRR.setPower(power_RR);
+            drive.FL.setPower(power_FL);
+            drive.FR.setPower(power_FR);
+            drive.RL.setPower(power_RL);
+            drive.RR.setPower(power_RR);
             
 
             // Show the elapsed game time and wheel power.
@@ -181,11 +188,38 @@ public class PIDdrivetrain extends LinearOpMode {
             telemetry.addData("IN","X%.2f Y%.2f",LocalX,LocalY);
             telemetry.addData("HDG","%.2f",A);
             telemetry.addData("Color", "\nR%.2f\nG%.2f\nB%.2f", cR, cG, cB);
+            telemetry.addData("CntFL", " [ %d ]  ", drive.FL.getCurrentPosition());
 
             telemetry.addData("Motors", "FL (%.2f), FR (%.2f), RL (%.2f), RR (%.2f)", power_FL, power_FR, power_RL, power_RR);
 
             telemetry.update();
 
         }
+    }
+
+    public void drivePID(double speed,
+                         double X,
+                         double Y,
+                         double rot,
+                         double timeout){
+        int TargetFL;
+        int TargetFR;
+        int TargetRL;
+        int TargetRR;
+
+        if(opModeIsActive()){
+            TargetFL = drive.FL.getCurrentPosition() + (int)(Y * COUNTS_PER_CM);
+            TargetFR = drive.FR.getCurrentPosition() + (int)(Y * COUNTS_PER_CM);
+            TargetRL = drive.RL.getCurrentPosition() + (int)(Y * COUNTS_PER_CM);
+            TargetRR = drive.RR.getCurrentPosition() + (int)(Y * COUNTS_PER_CM);
+
+            drive.FL.setTargetPosition(TargetFL);
+            drive.FR.setTargetPosition(TargetFR);
+            drive.RL.setTargetPosition(TargetRL);
+            drive.RR.setTargetPosition(TargetRR);
+
+
+        }
+
     }
 }
